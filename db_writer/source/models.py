@@ -6,14 +6,14 @@ class NotificationManager:
     def __init__(self, con: Pool):
         self.con = con
 
-    def create(self, **kwargs):
+    async def create(self, **kwargs):
         return await self.con.fetchval('''
             insert into notifications (title, body, send_to, send_at)
             values ($1, $2, $3, $4)
             returning id
         ''', kwargs['title'], kwargs['body'], kwargs['send_to'], kwargs['send_at'])
 
-    def get(self, **kwargs):
+    async def get(self, **kwargs):
         return await self.con.fetch('''
             select *
             from notifications
@@ -26,7 +26,7 @@ class NotificationManager:
         ''', kwargs['id'], kwargs['title'], kwargs['send_to'],
              kwargs['send_at'], kwargs['is_sent'], kwargs['is_deleted'])
 
-    def update(self, record_id: int, **kwargs):
+    async def update(self, record_id, **kwargs):
 
         updated_values = ', '.join([f'{key} = {value}' for key, value in kwargs])
         query = f'''
@@ -35,12 +35,12 @@ class NotificationManager:
             where id = $1
         '''
 
-        return await self.con.fetchval(query, record_id)
+        return await self.con.fetchval(query, int(record_id))
 
-    def delete(self, record_id: int):
+    async def delete(self, record_id):
         return await self.con.fetchval('''
             update notifications
             set is_deleted = True
             where id = $1
             returning id
-        ''', record_id)
+        ''', int(record_id))

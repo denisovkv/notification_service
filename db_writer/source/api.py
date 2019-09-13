@@ -7,6 +7,8 @@ from source.schemas import NotificationId, NotificationPayload, NotificationUpda
 
 routes = web.RouteTableDef()
 
+# TODO: fix output
+
 
 @routes.post('/notifications')
 async def post_handler(request):
@@ -39,7 +41,7 @@ async def get_handler(request):
         payload = input_schema.load(received_data)
 
         async with request.app['pool'].acquire() as con:
-            result = NotificationManager(con).get(**payload)
+            result = await NotificationManager(con).get(**payload)
 
         return web.Response(body=output_schema.dumps(result))
 
@@ -47,7 +49,7 @@ async def get_handler(request):
         return web.Response(status=400,
                             text='Request body is incorrect or missing')
 
-
+# TODO: fix input
 @routes.patch('/notifications/{id}')
 async def patch_handler(request):
     try:
@@ -59,7 +61,7 @@ async def patch_handler(request):
         payload = input_schema.load(received_data)
 
         async with request.app['pool'].acquire() as con:
-            result = NotificationManager(con).update(record_id=request.match_info['id'], **payload)
+            result = await NotificationManager(con).update(record_id=request.match_info['id'], **payload)
 
         return web.Response(body=output_schema.dumps(result))
 
@@ -74,6 +76,6 @@ async def delete_handler(request):
     output_schema = NotificationId()
 
     async with request.app['pool'].acquire() as con:
-        result = NotificationManager(con).delete(record_id=request.match_info['id'])
+        result = await NotificationManager(con).delete(record_id=request.match_info['id'])
 
     return web.Response(body=output_schema.dumps(result))
