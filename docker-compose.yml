@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    env_file: .env
+    environment:
+      POSTGRES_USER: $DATABASE_USER
+      POSTGRES_PASSWORD: $DATABASE_PASSWORD
+      POSTGRES_DB: $DATABASE_NAME
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+    networks:
+      - notification
+    ports:
+      - '${DATABASE_PORT}:${DATABASE_PORT}'
+
+  db_writer:
+    depends_on:
+      - db
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: docker/db_writer/Dockerfile
+    volumes:
+      - ./db_writer:/db_writer
+    networks:
+      - notification
+    ports:
+      - '$DB_WRITER_PORT:$DB_WRITER_PORT'
+    command: 'wait-for-it.sh "${DATABASE_HOST}:${DATABASE_PORT}" --
+              bash -c "gunicorn source:make_app -w $WORKERS --bind 0.0.0.0:$DB_WRITER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+
+  email_sender:
+    depends_on:
+      - db
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: docker/email_sender/Dockerfile
+    volumes:
+      - ./email_sender:/email_sender
+    networks:
+      - notification
+    ports:
+      - '$EMAIL_SENDER_PORT:$EMAIL_SENDER_PORT'
+    command: 'wait-for-it.sh "${DATABASE_HOST}:${DATABASE_PORT}" --
+              bash -c "gunicorn source:make_app -w $WORKERS --bind 0.0.0.0:$EMAIL_SENDER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+
+networks:
+  notification:
+    driver: bridge
