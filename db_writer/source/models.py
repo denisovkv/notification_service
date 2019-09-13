@@ -1,10 +1,46 @@
-from marshmallow import Schema, fields
+from asyncpg.pool import Pool
 
 
-class Notification(Schema):
-    id = fields.Integer()
-    title = fields.String()
-    body = fields.String()
-    mail_to = fields.Email()
-    send_time = fields.DateTime()
-    is_sent = fields.Boolean()
+class NotificationManager:
+
+    def __init__(self, con: Pool):
+        self.con = con
+
+    def create(self, **kwargs):
+        return await self.con.fetchval('''
+            insert into notifications (title, body, send_to, send_at)
+            values ($1, $2, $3, $4)
+            returning id
+        ''', kwargs['title'], kwargs['body'], kwargs['send_to'], kwargs['send_at'])
+
+    def get(self, **kwargs):
+        return await self.con.fetch('''
+            select *
+            from notifications
+            where (id = any($1) or
+            title = any($2) or
+            send_to = any($3) or
+            send_at = any($4)) and
+            is_sent = $5 and
+            is_deleted = $6
+        ''', kwargs['id'], kwargs['title'], kwargs['send_to'],
+             kwargs['send_at'], kwargs['is_sent'], kwargs['is_deleted'])
+
+    def update(self, record_id: int, **kwargs):
+
+        updated_values = ', '.join([f'{key} = {value}' for key, value in kwargs])
+        query = f'''
+            update notifications
+            {updated_values}
+            where id = $1
+        '''
+
+        return await self.con.fetchval(query, record_id)
+
+    def delete(self, record_id: int):
+        return await self.con.fetchval('''
+            update notifications
+            set is_deleted = True
+            where id = $1
+            returning id
+        ''', record_id)
