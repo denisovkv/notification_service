@@ -1,11 +1,11 @@
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, validate
 
 
 class Notification(Schema):
     id = fields.Integer()
-    title = fields.String()
-    body = fields.String()
-    send_to = fields.Email()
+    title = fields.String(validate=validate.Length(max=50))
+    body = fields.String(validate=validate.Length(max=200))
+    send_to = fields.Email(validate=validate.Length(max=50))
     send_at = fields.DateTime()
     is_sent = fields.Boolean()
     is_deleted = fields.Boolean()
@@ -30,7 +30,6 @@ class NotificationSearch(Schema):
     id = fields.List(fields.Integer(), missing=[])
     title = fields.List(fields.String(), missing=[])
     send_to = fields.List(fields.Email(), missing=[])
-    send_at = fields.List(fields.DateTime(), missing=[])
     is_sent = fields.Boolean(missing=False)
     is_deleted = fields.Boolean(missing=False)
 
