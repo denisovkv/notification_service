@@ -1,9 +1,6 @@
-from asyncpg.pool import Pool
-
-
 class NotificationManager:
 
-    def __init__(self, con: Pool):
+    def __init__(self, con):
         self.con = con
 
     async def create(self, **kwargs):
@@ -25,6 +22,8 @@ class NotificationManager:
 
     async def update(self, record_id, **kwargs):
 
+        # Для апдейта интовых и иных значений, для которых не требуются кавычки при SET-е,
+        # придется писать другой join и добавлять условия в генераторе списка типа isinstance(value, str).
         updated_values = ', '.join([f'{key} = \'{value}\'' for key, value in kwargs.items()])
         query = f'''
             update notifications

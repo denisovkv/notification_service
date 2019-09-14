@@ -9,8 +9,6 @@ from source.schemas import NotificationId, NotificationPayload, NotificationUpda
 
 routes = web.RouteTableDef()
 
-# TODO: fix output
-
 
 @routes.post('/notifications')
 async def post_handler(request):

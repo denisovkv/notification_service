@@ -1,17 +1,55 @@
 import asyncio
 import logging
-from typing import Any, MutableMapping
+from datetime import datetime
+from email.mime.text import MIMEText
 
-from source.data_utils import send_email
+import aiosmtplib
+
+from source import settings
 
 logger = logging.getLogger(__name__)
 
 
-async def email_task(app: MutableMapping[str, Any], delay_retry: int = 60):
+async def email_task(app, delay_retry=settings.EMAIL_SENDER_PERIOD):
     while True:
         try:
-            await send_email(app)
+            current_batch = set()
+            not_sent = set()
+
+            async with app['pool'].acquire() as con:
+                result = await con.fetch('''
+                    select *
+                    from notifications
+                    where is_sent = false and
+                    send_at < $1
+                ''', datetime.now())
+
+                for record in result:
+                    current_batch.add(record.get('id'))
+
+                    message = MIMEText(record.get('body'))
+                    message['From'] = settings.EMAIL_SENDER_LOGIN
+                    message['To'] = record.get('send_to')
+                    message['Subject'] = record.get('title')
+
+                    try:
+                        await aiosmtplib.send(message, hostname=settings.EMAIL_SENDER_SMTP_HOSTNAME,
+                                              port=settings.EMAIL_SENDER_SMTP_PORT, use_tls=True,
+                                              username=settings.EMAIL_SENDER_LOGIN,
+                                              password=settings.EMAIL_SENDER_PASSWORD)
+                        logger.info(f'Message to {message["To"]} is sent')
+
+                    except aiosmtplib.SMTPException as err:
+                        not_sent.add(record.get('id'))
+                        logger.error(f'Error with sending message to {message["To"]}: {err}')
+
+                await con.execute('''
+                    update notifications
+                    set is_sent = true
+                    where id = any($1)
+                ''', current_batch - not_sent)
+
             await asyncio.sleep(delay_retry)
         except Exception as error:
-            logger.critical(f'Критическая ошибка в задаче: {error}')
+            logger.critical(error)
             await asyncio.sleep(delay_retry / 2)
