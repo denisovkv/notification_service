@@ -33,7 +33,7 @@ async def email_task(app, delay_retry=settings.EMAIL_SENDER_PERIOD):
                     message['Subject'] = record.get('title')
 
                     try:
-                        await aiosmtplib.send(message, hostname=settings.EMAIL_SENDER_SMTP_HOSTNAME,
+                        await aiosmtplib.send(message, hostname=settings.EMAIL_SENDER_SMTP_HOST,
                                               port=settings.EMAIL_SENDER_SMTP_PORT, use_tls=True,
                                               username=settings.EMAIL_SENDER_LOGIN,
                                               password=settings.EMAIL_SENDER_PASSWORD)
