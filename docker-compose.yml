@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    env_file:
+      - .env
+      - .env.override
+    environment:
+      POSTGRES_USER: $DATABASE_USER
+      POSTGRES_DB: $DATABASE_NAME
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/postgresql.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - notification
+    ports:
+      - '${DATABASE_PORT}:${DATABASE_PORT}'
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+
+  db_writer:
+    depends_on:
+      - db
+    env_file:
+      - .env
+      - .env.override
+    build:
+      context: .
+      dockerfile: docker/db_writer/Dockerfile
+    volumes:
+      - ./db_writer:/db_writer
+    networks:
+      - notification
+    ports:
+      - '$DB_WRITER_PORT:$DB_WRITER_PORT'
+    command: 'wait-for-it.sh "${DATABASE_HOST}:${DATABASE_PORT}" --
+              bash -c "sleep 5 && gunicorn source:make_app -w $DB_WRITER_WORKERS --bind 0.0.0.0:$DB_WRITER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+
+  email_sender:
+    depends_on:
+      - db
+    env_file:
+      - .env
+      - .env.override
+    build:
+      context: .
+      dockerfile: docker/email_sender/Dockerfile
+    volumes:
+      - ./email_sender:/email_sender
+    networks:
+      - notification
+    ports:
+      - '$EMAIL_SENDER_PORT:$EMAIL_SENDER_PORT'
+    command: 'wait-for-it.sh "${DATABASE_HOST}:${DATABASE_PORT}" --
+              bash -c "sleep 5 && gunicorn source:make_app -w 1 --bind 0.0.0.0:$EMAIL_SENDER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+
+networks:
+  notification:
+    driver: bridge
