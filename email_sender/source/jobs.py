@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from datetime import datetime
 from email.mime.text import MIMEText
 
 import aiosmtplib
@@ -22,8 +21,8 @@ async def email_task(app, delay_retry=settings.EMAIL_SENDER_PERIOD):
                     from notifications
                     where is_sent = false and
                     is_deleted = false and
-                    send_at < $1
-                ''', datetime.now())
+                    send_at < now()
+                ''')
 
                 for record in result:
                     current_batch.add(record.get('id'))
