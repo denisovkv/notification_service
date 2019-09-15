@@ -23,7 +23,7 @@ class NotificationManager:
     async def update(self, record_id, **kwargs):
 
         # Для апдейта интовых и иных значений, для которых не требуются кавычки при SET-е,
-        # придется писать другой join и добавлять условия в генераторе списка типа isinstance(value, str).
+        # придется писать другой join и добавлять условия в генераторах списка типа isinstance.
         updated_values = ', '.join([f'{key} = \'{value}\'' for key, value in kwargs.items()])
         query = f'''
             update notifications

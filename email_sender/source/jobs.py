@@ -14,13 +14,14 @@ async def email_task(app, delay_retry=settings.EMAIL_SENDER_PERIOD):
     while True:
         try:
             current_batch = set()
-            not_sent = set()
+            not_sent_batch = set()
 
             async with app['pool'].acquire() as con:
                 result = await con.fetch('''
                     select *
                     from notifications
                     where is_sent = false and
+                    is_deleted = false and
                     send_at < $1
                 ''', datetime.now())
 
@@ -40,14 +41,14 @@ async def email_task(app, delay_retry=settings.EMAIL_SENDER_PERIOD):
                         logger.info(f'Message to {message["To"]} is sent')
 
                     except aiosmtplib.SMTPException as err:
-                        not_sent.add(record.get('id'))
+                        not_sent_batch.add(record.get('id'))
                         logger.error(f'Error with sending message to {message["To"]}: {err}')
 
                 await con.execute('''
                     update notifications
                     set is_sent = true
                     where id = any($1)
-                ''', current_batch - not_sent)
+                ''', current_batch - not_sent_batch)
 
             await asyncio.sleep(delay_retry)
         except Exception as error:

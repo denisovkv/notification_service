@@ -1,6 +1,5 @@
 import asyncpg
 import aiojobs
-import asyncio
 from aiohttp import web
 
 from source import settings
