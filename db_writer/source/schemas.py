@@ -27,11 +27,11 @@ class NotificationUpdatePayload(Notification):
 
 
 class NotificationSearch(Schema):
-    id = fields.List(fields.Integer(), missing=[])
-    title = fields.List(fields.String(), missing=[])
-    send_to = fields.List(fields.Email(), missing=[])
-    is_sent = fields.Boolean(missing=False)
-    is_deleted = fields.Boolean(missing=False)
+    id = fields.List(fields.Integer())
+    title = fields.List(fields.String())
+    send_to = fields.List(fields.Email())
+    is_sent = fields.Boolean(missing=None)
+    is_deleted = fields.Boolean(missing=None)
 
 
 class NotificationOutput(Schema):
