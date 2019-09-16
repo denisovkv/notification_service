@@ -11,14 +11,24 @@ class NotificationManager:
         ''', kwargs['title'], kwargs['body'], kwargs['send_to'], kwargs['send_at'])
 
     async def get(self, **kwargs):
-        return await self.con.fetch('''
-            select *
-            from notifications
-            where (id = any($1) or
-            title = any($2) or
-            send_to = any($3)) and
-            is_deleted = $4
-        ''', kwargs['id'], kwargs['title'], kwargs['send_to'], kwargs['is_deleted'])
+
+        query = 'select * from notifications'
+
+        # Самописные фильтры sql омг -_-
+        if not all(i is None for i in kwargs.values()):
+            query += ' where '
+
+            filters = [f'{key} = any(ARRAY{value})' for key, value in kwargs.items() if key in ['id', 'title', 'send_to'] and value]
+
+            if kwargs['is_sent'] is not None:
+                filters.append(f'is_sent = {kwargs["is_sent"]}')
+
+            if kwargs['is_deleted'] is not None:
+                filters.append(f'is_deleted = {kwargs["is_deleted"]}')
+
+            query += ' and '.join(filters)
+
+        return await self.con.fetch(query)
 
     async def update(self, record_id, **kwargs):
 
