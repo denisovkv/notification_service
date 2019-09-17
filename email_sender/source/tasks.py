@@ -9,7 +9,7 @@ from source import settings
 logger = logging.getLogger(__name__)
 
 
-async def email_task(app, delay_retry=settings.EMAIL_SENDER_PERIOD):
+async def email_task(app):
     while True:
         try:
             current_batch = set()
