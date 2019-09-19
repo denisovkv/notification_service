@@ -4,7 +4,7 @@ ARG EMAIL_SENDER_PORT
 
 WORKDIR /email_sender
 
-COPY email_sender/requirements.tx ./
+COPY email_sender/requirements.txt ./
 
 RUN pip install pip --upgrade && \
     pip install -r requirements.txt --no-cache-dir

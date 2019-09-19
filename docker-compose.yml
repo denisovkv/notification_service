@@ -3,8 +3,6 @@ version: '3'
 services:
 
   db_writer:
-    depends_on:
-      - db
     env_file:
       - .env
       - .env.override
@@ -18,11 +16,9 @@ services:
       - notification
     ports:
       - '$DB_WRITER_PORT:$DB_WRITER_PORT'
-    command: 'bash -c "sleep 5 && gunicorn source:make_app -w $DB_WRITER_WORKERS --bind 0.0.0.0:$DB_WRITER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+    command: 'bash -c "gunicorn source:make_app -w $DB_WRITER_WORKERS --bind 0.0.0.0:$DB_WRITER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
 
   email_sender:
-    depends_on:
-      - db
     env_file:
       - .env
       - .env.override
@@ -31,12 +27,11 @@ services:
       dockerfile: docker/email_sender/Dockerfile
     volumes:
       - ./email_sender:/email_sender
-      - ./db:/db
     networks:
       - notification
     ports:
       - '$EMAIL_SENDER_PORT:$EMAIL_SENDER_PORT'
-    command: 'bash -c "sleep 5 && gunicorn source:make_app -w 1 --bind 0.0.0.0:$EMAIL_SENDER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+    command: 'bash -c "gunicorn source:make_app -w 1 --bind 0.0.0.0:$EMAIL_SENDER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
 
 networks:
   notification:

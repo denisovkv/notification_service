@@ -134,7 +134,7 @@ reset-docker.sh
 *nogit*
 
 # media & static & data
-db/data
+db/
 media/
 static/
 !backend/tasks/static/

@@ -1,9 +1,7 @@
-from asyncio import shield
-
 from aiohttp import web
 from marshmallow import ValidationError
 
-from source.models import NotificationManager
+from source.models import notifications
 from source.schemas import NotificationId, NotificationPayload, NotificationUpdatePayload, \
                            NotificationSearch, NotificationOutput
 
@@ -20,10 +18,12 @@ async def post_handler(request):
 
         payload = input_schema.load(received_data)
 
-        async with request.app['pool'].acquire() as con:
-            result = await shield(NotificationManager(con).create(**payload))
+        notification_id = await request.app['database'].execute(query=notifications.insert(),
+                                                                values=payload)
 
-        return web.Response(body=output_schema.dumps(result))
+        # TODO: await create_task
+
+        return web.Response(body=output_schema.dumps({'id': notification_id}))
 
     except (ValueError, ValidationError):
         return web.Response(status=400,
@@ -33,18 +33,16 @@ async def post_handler(request):
 @routes.get('/notifications')
 async def get_handler(request):
     try:
-        received_data = await request.json()
-
         input_schema = NotificationSearch()
         output_schema = NotificationOutput()
 
-        payload = input_schema.load(received_data)
+        payload = input_schema.load(request.query)
 
-        async with request.app['pool'].acquire() as con:
-            result = await shield(NotificationManager(con).get(**payload))
+        result = await request.app['database'].fetch_all(query=notifications.select())
+
+        # TODO: await create_task
 
         return web.Response(body=output_schema.dumps({'result': result}))
-
     except (ValueError, ValidationError):
         return web.Response(status=400,
                             text='Request body is incorrect or missing')
@@ -56,14 +54,17 @@ async def patch_handler(request):
         received_data = await request.json()
 
         input_schema = NotificationUpdatePayload()
-        output_schema = NotificationId()
 
         payload = input_schema.load(received_data)
 
-        async with request.app['pool'].acquire() as con:
-            result = await shield(NotificationManager(con).update(record_id=request.match_info['id'], **payload))
+        query = notifications.update().where(notifications.c.id == request.match_info['id'])
 
-        return web.Response(body=output_schema.dumps(result))
+        await request.app['database'].execute(query=query,
+                                              values=payload)
+
+        # TODO: await create_task
+
+        return web.Response()
 
     except (ValueError, ValidationError):
         return web.Response(status=400,
@@ -73,9 +74,11 @@ async def patch_handler(request):
 @routes.delete('/notifications/{id}')
 async def delete_handler(request):
 
-    output_schema = NotificationId()
+    query = notifications.update().where(notifications.c.id == request.match_info['id'])
 
-    async with request.app['pool'].acquire() as con:
-        result = await shield(NotificationManager(con).delete(record_id=request.match_info['id']))
+    await request.app['database'].execute(query=query,
+                                          values={'is_deleted': True})
 
-    return web.Response(body=output_schema.dumps(result))
+    # TODO: await create_task
+
+    return web.Response()
