@@ -93,6 +93,7 @@ async def patch_handler(request):
         await request.app['database'].execute(query=query,
                                               values=payload)
 
+        # TODO: timezone
         query = notifications.select().where(notifications.c.id == request.match_info['id'])
 
         result = await request.app['database'].fetch_one(query=query)
