@@ -40,24 +40,25 @@
 Запрос:
 ```
 {
-    "title": ["hello"]
+    "title": "hello"
 }
 ```
 ```
 {
-    "id": [1, 2, 3]
+    "id": 1
 }
 ```
 ```
 {
-    "send_to": ["foo@bar.ru", "bar@foo.ru"]
+    "send_to": "foo@bar.ru"
 }
 ```
 Указание нескольких фильтров расценивается как AND:
 ```
 {
-    "id": [1, 2, 3],
-    "is_sent": false
+    "id": 1,
+    "is_sent": false,
+    "is_deleted": false,
 }
 ```
 

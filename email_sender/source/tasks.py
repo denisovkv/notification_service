@@ -1,32 +1,37 @@
 import logging
-from email.mime.text import MIMEText
+import smtplib
 
-import aiosmtplib
+from email.message import EmailMessage
+
+import requests
 
 from source import settings
 
 logger = logging.getLogger(__name__)
 
 
-async def confirm_sending(notification_id):
-    pass
+def confirm_sending(notification_id):
+    requests.patch(f'{settings.DB_WRITER_CONFIRM_ENDPOINT}/{notification_id}',
+                   json={'is_sent': True})
 
 
-async def email_task(**kwargs):
+def send_email(payload):
 
-    message = MIMEText(kwargs.get('body'))
+    message = EmailMessage()
     message['From'] = settings.EMAIL_SENDER_LOGIN
-    message['To'] = kwargs.get('send_to')
-    message['Subject'] = kwargs.get('title')
+    message['To'] = payload.get('send_to')
+    message['Subject'] = payload.get('title')
+    message.set_content(payload.get('body'))
 
     try:
-        await aiosmtplib.send(message, hostname=settings.EMAIL_SENDER_SMTP_HOST,
-                              port=settings.EMAIL_SENDER_SMTP_PORT, use_tls=True,
-                              username=settings.EMAIL_SENDER_LOGIN,
-                              password=settings.EMAIL_SENDER_PASSWORD)
-        logger.info(f'Message to {message["To"]} is sent')
+        with smtplib.SMTP_SSL(
+                host=settings.EMAIL_SENDER_SMTP_HOST,
+                port=settings.EMAIL_SENDER_SMTP_PORT
+        ) as s:
+            s.login(settings.EMAIL_SENDER_LOGIN, settings.EMAIL_SENDER_PASSWORD)
+            s.send_message(message)
 
-        await confirm_sending(kwargs['id'])
+        confirm_sending(payload['id'])
 
-    except aiosmtplib.SMTPException as err:
-        logger.error(f'Error with sending message to {message["To"]}: {err}')
+    except smtplib.SMTPException:
+        logger.error(f'Error with sending message: {payload}')
