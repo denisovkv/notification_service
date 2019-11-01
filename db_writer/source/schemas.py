@@ -23,7 +23,7 @@ class NotificationPayload(Notification):
 
 class NotificationUpdatePayload(Notification):
     class Meta:
-        exclude = ('id', 'is_deleted')
+        exclude = ('id', 'is_sent', 'is_deleted')
 
 
 class NotificationSearch(Schema):
@@ -40,7 +40,3 @@ class NotificationOutput(Schema):
 
 class NotificationId(Schema):
     id = fields.Integer()
-
-
-class SendingConfirmation(Schema):
-    is_sent = fields.Boolean()

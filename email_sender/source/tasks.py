@@ -11,8 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def confirm_sending(notification_id):
-    requests.patch(f'{settings.DB_WRITER_CONFIRM_ENDPOINT}/{notification_id}',
-                   json={'is_sent': True})
+    requests.get(f'{settings.DB_WRITER_CONFIRM_ENDPOINT}/{notification_id}')
 
 
 def send_email(payload):

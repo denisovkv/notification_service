@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 
 from source import settings
 
+# TODO: mongo?
 
 engine = create_engine(settings.DATABASE_URL)
 meta = MetaData()
@@ -18,6 +19,7 @@ notifications = Table(
 )
 
 
+# TODO: миграции
 def create_models():
     if not engine.has_table('notifications'):
         meta.create_all(engine)
