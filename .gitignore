@@ -86,7 +86,7 @@ celerybeat-schedule
 *.sage.py
 
 # Environments
-.env.override
+.env
 .venv
 env/
 venv/
@@ -134,7 +134,7 @@ reset-docker.sh
 *nogit*
 
 # media & static & data
-db/
+data/
 media/
 static/
 !backend/tasks/static/

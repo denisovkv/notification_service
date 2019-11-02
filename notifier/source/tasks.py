@@ -1,33 +1,33 @@
 import logging
 import smtplib
 
+from aiohttp import ClientSession
 from email.message import EmailMessage
 
-import requests
-
-from source import settings
+from app import settings
 
 logger = logging.getLogger(__name__)
 
 
 def confirm_sending(notification_id):
-    requests.get(f'{settings.DB_WRITER_CONFIRM_ENDPOINT}/{notification_id}')
+    async with ClientSession() as session, session.get(f'{settings.BACKEND_CONFIRM_ENDPOINT}/{notification_id}'):
+        pass
 
 
 def send_email(payload):
 
     message = EmailMessage()
-    message['From'] = settings.EMAIL_SENDER_LOGIN
+    message['From'] = settings.NOTIFIER_LOGIN
     message['To'] = payload.get('send_to')
     message['Subject'] = payload.get('title')
     message.set_content(payload.get('body'))
 
     try:
         with smtplib.SMTP_SSL(
-                host=settings.EMAIL_SENDER_SMTP_HOST,
-                port=settings.EMAIL_SENDER_SMTP_PORT
+                host=settings.NOTIFIER_SMTP_HOST,
+                port=settings.NOTIFIER_SMTP_PORT
         ) as s:
-            s.login(settings.EMAIL_SENDER_LOGIN, settings.EMAIL_SENDER_PASSWORD)
+            s.login(settings.NOTIFIER_LOGIN, settings.NOTIFIER_PASSWORD)
             s.send_message(message)
 
         confirm_sending(payload['id'])

@@ -2,36 +2,44 @@ version: '3'
 
 services:
 
-  db_writer:
-    env_file:
-      - .env
-      - .env.override
-    build:
-      context: .
-      dockerfile: docker/db_writer/Dockerfile
+  mongo:
+    image: mongo:latest
     volumes:
-      - ./db_writer:/db_writer
-      - ./db:/db
+      - ./data:/data/db
     networks:
       - notification
     ports:
-      - '$DB_WRITER_PORT:$DB_WRITER_PORT'
-    command: 'bash -c "gunicorn source:make_app -w $DB_WRITER_WORKERS --bind 0.0.0.0:$DB_WRITER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+      - '$DB_PORT:$DB_PORT'
 
-  email_sender:
+  backend:
     env_file:
       - .env
-      - .env.override
     build:
       context: .
-      dockerfile: docker/email_sender/Dockerfile
+      dockerfile: docker/backend/Dockerfile
     volumes:
-      - ./email_sender:/email_sender
+      - ./backend:/backend
     networks:
       - notification
     ports:
-      - '$EMAIL_SENDER_PORT:$EMAIL_SENDER_PORT'
-    command: 'bash -c "gunicorn source:make_app -w 1 --bind 0.0.0.0:$EMAIL_SENDER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+      - '$BACKEND_PORT:$BACKEND_PORT'
+    command: 'wait-for-it.sh "mongo:${DB_PORT}" --
+              bash -c "gunicorn app:make_app -w $BACKEND_WORKERS --bind 0.0.0.0:$BACKEND_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+
+  notifier:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: docker/notifier/Dockerfile
+    volumes:
+      - ./notifier:/notifier
+    networks:
+      - notification
+    ports:
+      - '$NOTIFIER_PORT:$NOTIFIER_PORT'
+    command: 'wait-for-it.sh "mongo:${DB_PORT}" --
+              bash -c "gunicorn app:make_app -w 1 --bind 0.0.0.0:$NOTIFIER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
 
 networks:
   notification:

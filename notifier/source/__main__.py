@@ -2,7 +2,7 @@ import weakref
 
 from aiohttp import web
 
-from source.api import routes
+from notification.views import routes
 
 
 async def make_app():

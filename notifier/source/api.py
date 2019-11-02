@@ -4,8 +4,8 @@ from datetime import datetime
 
 from aiohttp import web
 
-from source.schemas import Notification
-from source.tasks import send_email
+from notification.schemas import Notification
+from app.tasks import send_email
 
 logger = logging.getLogger(__name__)
 routes = web.RouteTableDef()
