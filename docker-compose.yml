@@ -9,7 +9,7 @@ services:
     networks:
       - notification
     ports:
-      - '$DB_PORT:$DB_PORT'
+      - '$MONGO_PORT:$MONGO_PORT'
 
   backend:
     env_file:
@@ -23,7 +23,7 @@ services:
       - notification
     ports:
       - '$BACKEND_PORT:$BACKEND_PORT'
-    command: 'wait-for-it.sh "mongo:${DB_PORT}" --
+    command: 'wait-for-it.sh "mongo:${MONGO_PORT}" --
               bash -c "gunicorn app:make_app -w $BACKEND_WORKERS --bind 0.0.0.0:$BACKEND_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
 
   notifier:
@@ -38,8 +38,7 @@ services:
       - notification
     ports:
       - '$NOTIFIER_PORT:$NOTIFIER_PORT'
-    command: 'wait-for-it.sh "mongo:${DB_PORT}" --
-              bash -c "gunicorn app:make_app -w 1 --bind 0.0.0.0:$NOTIFIER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+    command: 'bash -c "gunicorn app:make_app -w 1 --bind 0.0.0.0:$NOTIFIER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
 
 networks:
   notification:

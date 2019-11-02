@@ -1,10 +1,9 @@
 from aiohttp import ClientSession, web
 from marshmallow import ValidationError
 
-from notification.models import notifications
 from app import settings
-from notification.schemas import NotificationId, NotificationPayload, NotificationUpdatePayload, \
-    NotificationSearch, NotificationOutput, Notification
+from notification import schemas
+from notification.models import Notification
 
 
 routes = web.RouteTableDef()
@@ -15,7 +14,7 @@ class NotificationView(web.View):
 
     async def get(self):
 
-        output_schema = Notification()
+        output_schema = schemas.Notification()
 
         query = notifications.select().where(notifications.c.id == self.request.match_info['id'])
 
@@ -27,7 +26,7 @@ class NotificationView(web.View):
         try:
             received_data = await self.request.json()
 
-            input_schema = NotificationUpdatePayload()
+            input_schema = schemas.NotificationUpdatePayload()
 
             payload = input_schema.load(received_data)
 
@@ -48,7 +47,7 @@ class NotificationView(web.View):
                                               f'{self.request.match_info["id"]}'):
                         pass
 
-                    async with session.post(settings.NOTIFIER_ENDPOINT, json=Notification().dump(result)):
+                    async with session.post(settings.NOTIFIER_ENDPOINT, json=schemas.Notification().dump(result)):
                         pass
                 return web.Response()
             else:
@@ -77,8 +76,8 @@ class NotificationCreateView(web.View):
         try:
             received_data = await self.request.json()
 
-            input_schema = NotificationPayload()
-            output_schema = NotificationId()
+            input_schema = schemas.NotificationPayload()
+            output_schema = schemas.NotificationId()
 
             payload = input_schema.load(received_data)
 
@@ -100,23 +99,12 @@ class NotificationCreateView(web.View):
 class NotificationSearchView(web.View):
     async def get(self):
         try:
-            input_schema = NotificationSearch()
-            output_schema = NotificationOutput()
+            input_schema = schemas.NotificationSearch()
+            output_schema = schemas.NotificationOutput()
 
             payload = input_schema.load(self.request.query)
 
-            column_map = {
-                'id': notifications.c.id,
-                'title': notifications.c.title,
-                'send_to': notifications.c.send_to,
-                'is_sent': notifications.c.is_sent,
-                'is_deleted': notifications.c.is_deleted
-            }
-
             query = notifications.select()
-
-            for key, value in payload.items():
-                query = query.where(column_map[key] == value)
 
             result = await self.request.app['database'].fetch_all(query=query)
 

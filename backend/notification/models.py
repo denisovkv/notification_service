@@ -5,8 +5,8 @@ from app import settings
 
 class Notification:
 
-    def __init__(self, db):
-        self.collection = db[settings.NOTIFICATION_COLLECTION]
+    def __new__(cls, db):
+        cls.collection = db[settings.NOTIFICATION_COLLECTION]
 
     async def save(self, user, msg):
         result = await self.collection.insert({'user': user, 'msg': msg, 'time': datetime.now()})

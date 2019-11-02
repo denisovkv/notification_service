@@ -4,7 +4,7 @@ from datetime import datetime
 
 from aiohttp import web
 
-from notification.schemas import Notification
+from app import schemas
 from app.tasks import send_email
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ async def create_task(request):
 
     received_data = await request.json()
 
-    input_schema = Notification()
+    input_schema = schemas.Notification()
 
     payload = input_schema.load(received_data)
 

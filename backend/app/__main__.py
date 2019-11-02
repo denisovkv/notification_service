@@ -16,14 +16,11 @@ async def stop_background_tasks(app):
 
 async def make_app():
     app = web.Application()
-
-    api = web.Application()
     notification = web.Application()
 
-    app.add_subapp('/api/', api)
-    app.add_subapp('/notification/', notification)
-
     notification.add_routes(notification_routes)
+
+    app.add_subapp('/api/notification/', notification)
 
     app.on_startup.append(start_background_tasks)
     app.on_shutdown.append(stop_background_tasks)

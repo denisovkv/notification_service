@@ -1,6 +1,8 @@
 import logging
 import smtplib
 
+import requests
+
 from aiohttp import ClientSession
 from email.message import EmailMessage
 
@@ -10,8 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def confirm_sending(notification_id):
-    async with ClientSession() as session, session.get(f'{settings.BACKEND_CONFIRM_ENDPOINT}/{notification_id}'):
-        pass
+    requests.get(f'{settings.BACKEND_CONFIRM_ENDPOINT}/{notification_id}')
 
 
 def send_email(payload):
