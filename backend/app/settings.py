@@ -11,4 +11,4 @@ NOTIFICATION_COLLECTION = env.str('NOTIFICATION_COLLECTION', default='notificati
 
 DATABASE_URL = f'mongodb://{MONGO_HOST}:{MONGO_PORT}'
 
-NOTIFIER_ENDPOINT = env.str('NOTIFIER_ENDPOINT', default='http://notifier:8081/api/tasks')
+NOTIFIER_ENDPOINT = env.str('NOTIFIER_ENDPOINT', default='http://notifier:8081/api/task')

@@ -3,7 +3,6 @@ import smtplib
 
 import requests
 
-from aiohttp import ClientSession
 from email.message import EmailMessage
 
 from app import settings

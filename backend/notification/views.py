@@ -20,7 +20,7 @@ class NotificationView(web.View):
 
         result = await self.request.app['database'].fetch_one(query=query)
 
-        return web.Response(body=output_schema.dumps(result))
+        return web.HTTPOk(body=output_schema.dumps(result))
 
     async def patch(self):
         try:
@@ -42,21 +42,15 @@ class NotificationView(web.View):
             result = await self.request.app['database'].fetch_one(query=query)
 
             if result:
-                async with ClientSession() as session:
-                    async with session.delete(f'{settings.NOTIFIER_ENDPOINT}/'
-                                              f'{self.request.match_info["id"]}'):
-                        pass
-
-                    async with session.post(settings.NOTIFIER_ENDPOINT, json=schemas.Notification().dump(result)):
-                        pass
-                return web.Response()
+                async with ClientSession() as session, \
+                        session.delete(f'{settings.NOTIFIER_ENDPOINT}/{self.request.match_info["id"]}'), \
+                        session.post(settings.NOTIFIER_ENDPOINT, json=schemas.Notification().dump(result)):
+                    return web.HTTPOk()
             else:
-                return web.Response(status=400,
-                                    text='Notification with self.requested id is missing')
+                return web.HTTPNotFound(text='Notification with requested id is missing')
 
         except (ValueError, ValidationError):
-            return web.Response(status=400,
-                                text='Request body is incorrect or missing')
+            return web.HTTPBadRequest(text='Request body is incorrect or missing')
 
     async def delete(self):
 
@@ -65,9 +59,9 @@ class NotificationView(web.View):
         await self.request.app['database'].execute(query=query,
                                                    values={'is_deleted': True})
 
-        async with ClientSession() as session, session.delete(f'{settings.NOTIFIER_ENDPOINT}/'
-                                                              f'{self.request.match_info["id"]}'):
-            return web.Response()
+        async with ClientSession() as session, \
+                session.delete(f'{settings.NOTIFIER_ENDPOINT}/{self.request.match_info["id"]}'):
+            return web.HTTPOk()
 
 
 @routes.view('/')
@@ -85,14 +79,12 @@ class NotificationCreateView(web.View):
                                                                          values=payload)
             received_data['id'] = notification_id
 
-            async with ClientSession() as session, session.post(settings.NOTIFIER_ENDPOINT,
-                                                                json=received_data):
-
-                return web.Response(body=output_schema.dumps({'id': notification_id}))
+            async with ClientSession() as session, \
+                    session.post(settings.NOTIFIER_ENDPOINT, json=received_data):
+                return web.HTTPOk(body=output_schema.dumps({'id': notification_id}))
 
         except (ValueError, ValidationError):
-            return web.Response(status=400,
-                                text='Request body is incorrect or missing')
+            return web.HTTPBadRequest(text='Request body is incorrect or missing')
 
 
 @routes.view('/search')
@@ -108,11 +100,10 @@ class NotificationSearchView(web.View):
 
             result = await self.request.app['database'].fetch_all(query=query)
 
-            return web.Response(body=output_schema.dumps({'result': result}))
+            return web.HTTPOk(body=output_schema.dumps({'result': result}))
 
         except (ValueError, ValidationError):
-            return web.Response(status=400,
-                                text='Request body is incorrect or missing')
+            return web.HTTPBadRequest(text='Request body is incorrect or missing')
 
 
 @routes.view('/confirm/{id}')
@@ -123,4 +114,4 @@ class NotificationConfirmView(web.View):
 
         await self.request.app['database'].execute(query=query,
                                                    values={'is_sent': True})
-        return web.Response()
+        return web.HTTPOk()
