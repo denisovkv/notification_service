@@ -1,17 +1,36 @@
-from datetime import datetime
+from aiohttp import web
+from bson.objectid import ObjectId
+from bson.errors import InvalidId
 
 from app import settings
 
 
 class Notification:
 
-    def __new__(cls, db):
-        cls.collection = db[settings.NOTIFICATION_COLLECTION]
+    def __init__(self, db):
+        self.collection = db[settings.NOTIFICATION_COLLECTION]
 
-    async def save(self, user, msg):
-        result = await self.collection.insert({'user': user, 'msg': msg, 'time': datetime.now()})
-        return result
+    async def get_or_404(self, _id):
+        try:
+            result = await self.collection.find_one({'_id': ObjectId(_id)})
+            if result:
+                return result
+            else:
+                raise web.HTTPNotFound(text='Notification with requested id is missing')
+        except InvalidId:
+            raise web.HTTPNotFound(text='Notification with requested id is missing')
 
-    async def get_messages(self):
-        messages = self.collection.find().sort([('time', 1)])
-        return await messages.to_list(length=None)
+    async def update_or_404(self, _id, payload):
+        try:
+            result = await self.collection.update_one({'_id': ObjectId(_id)}, payload)
+            if not result:
+                raise web.HTTPNotFound(text='Notification with requested id is missing')
+        except InvalidId:
+            raise web.HTTPNotFound(text='Notification with requested id is missing')
+
+    async def insert(self, data):
+        result = await self.collection.insert_one(data)
+        return str(result.inserted_id)
+
+    async def select(self, **filters):
+        pass

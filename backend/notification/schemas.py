@@ -1,8 +1,8 @@
-from marshmallow import Schema, fields, validate
+from marshmallow import Schema, fields, post_load, validate
 
 
 class Notification(Schema):
-    id = fields.Integer()
+    id = fields.Function(lambda obj: str(obj['_id']))
     title = fields.String(validate=validate.Length(max=50))
     body = fields.String(validate=validate.Length(max=200))
     send_to = fields.Email(validate=validate.Length(max=50))
@@ -20,6 +20,12 @@ class NotificationPayload(Notification):
     send_to = fields.Email(required=True)
     send_at = fields.DateTime(required=True)
 
+    @post_load
+    def set_default_to_excluded(self, data, **kwargs):
+        data['is_sent'] = False
+        data['is_deleted'] = False
+        return data
+
 
 class NotificationUpdatePayload(Notification):
     class Meta:
@@ -27,16 +33,12 @@ class NotificationUpdatePayload(Notification):
 
 
 class NotificationSearch(Schema):
-    id = fields.Integer()
+    id = fields.String()
     title = fields.String()
     send_to = fields.Email()
     is_sent = fields.Boolean()
     is_deleted = fields.Boolean()
 
 
-class NotificationOutput(Schema):
+class NotificationList(Schema):
     result = fields.List(fields.Nested(Notification))
-
-
-class NotificationId(Schema):
-    id = fields.Integer()

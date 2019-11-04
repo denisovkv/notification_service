@@ -32,5 +32,5 @@ def send_email(payload):
 
         confirm_sending(payload['id'])
 
-    except smtplib.SMTPException:
-        logger.error(f'Error with sending message: {payload}')
+    except smtplib.SMTPException as er:
+        logger.error(f'Error with sending message {payload}: {er}')

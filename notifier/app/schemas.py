@@ -2,7 +2,7 @@ from marshmallow import Schema, fields
 
 
 class Notification(Schema):
-    id = fields.Integer(required=True)
+    id = fields.String(required=True)
     title = fields.String(required=True)
     body = fields.String(required=True)
     send_to = fields.Email(required=True)

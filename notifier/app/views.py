@@ -15,16 +15,19 @@ routes = web.RouteTableDef()
 class TaskView(web.View):
     async def delete(self):
         try:
-            self.request.app['tasks'][int(self.request.match_info['id'])].cancel()
+            self.request.app['tasks'][self.request.match_info['id']].cancel()
 
             logger.info(f'Task {self.request.match_info["id"]} was cancelled')
+
+            return web.HTTPOk()
+
         except KeyError:
             logger.error(f'Task {self.request.match_info["id"]} was not found')
 
-        return web.HTTPOk()
+            return web.HTTPNotFound()
 
 
-@routes.view('/api/task/')
+@routes.view('/api/task')
 class TaskCreateView(web.View):
     async def post(self):
 
