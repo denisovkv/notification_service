@@ -10,8 +10,7 @@ from notification.models import Notification
 
 routes = web.RouteTableDef()
 
-# TODO: timezone
-# TODO: typing
+# TODO: timezone, search
 
 
 @routes.view('/{id}')
@@ -51,7 +50,7 @@ class NotificationView(web.View):
 
 
 @routes.view('')
-class NotificationCreateView(web.View):
+class NotificationCreateAndSearchView(web.View):
     async def post(self):
         try:
             payload = schemas.NotificationPayload().load(await self.request.json())
@@ -67,25 +66,25 @@ class NotificationCreateView(web.View):
         except (ValueError, ValidationError):
             return web.HTTPBadRequest(text='Request body is incorrect or missing')
 
-
-@routes.view('/search')
-class NotificationSearchView(web.View):
-    async def get(self):
-        try:
-
-            filters = schemas.NotificationSearch().load(self.request.query)
-
-            result = await Notification(self.request.app['db']).select(**filters)
-
-            return web.HTTPOk(content_type='application/json', body=schemas.NotificationList().dumps({'result': result}))
-
-        except (ValueError, ValidationError):
-            return web.HTTPBadRequest(text='Request body is incorrect or missing')
+    # async def get(self):
+    #     try:
+    #
+    #         filters = schemas.NotificationSearch().load(self.request.query)
+    #
+    #         prepared_filters = {'$and': [{key: {'$in': value}} for key, value in filters.items()]} if filters else {}
+    #
+    #         result = await Notification(self.request.app['db']).select(prepared_filters)
+    #
+    #         return web.HTTPOk(content_type='application/json',
+    #                           body=schemas.NotificationList().dumps({'result': result}))
+    #
+    #     except (ValueError, ValidationError):
+    #         return web.HTTPBadRequest(text=f'Request body is incorrect or missing')
 
 
 @routes.view('/confirm/{id}')
 class NotificationConfirmView(web.View):
-    async def get(self):
+    async def patch(self):
 
         await Notification(self.request.app['db']).update_or_404(self.request.match_info['id'], {'$set': {'is_sent': True}})
 

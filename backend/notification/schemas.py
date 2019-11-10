@@ -32,12 +32,12 @@ class NotificationUpdatePayload(Notification):
         exclude = ('id', 'is_sent', 'is_deleted')
 
 
-class NotificationSearch(Schema):
-    id = fields.String()
-    title = fields.String()
-    send_to = fields.Email()
-    is_sent = fields.Boolean()
-    is_deleted = fields.Boolean()
+# class NotificationSearch(Schema):
+#     id = fields.List(fields.String())
+#     title = fields.List(fields.String())
+#     send_to = fields.List(fields.Email())
+#     is_sent = fields.List(fields.Boolean())
+#     is_deleted = fields.List(fields.Boolean())
 
 
 class NotificationList(Schema):

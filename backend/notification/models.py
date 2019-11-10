@@ -33,5 +33,8 @@ class Notification:
         result = await self.collection.insert_one(data)
         return str(result.inserted_id)
 
-    async def select(self, **filters):
-        pass
+    # async def select(self, filters: dict) -> list:
+    #     result = []
+    #     async for doc in self.collection.find(filters):
+    #         result.append(doc)
+    #     return result

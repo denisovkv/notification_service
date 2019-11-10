@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def confirm_sending(notification_id):
-    requests.get(f'{settings.BACKEND_CONFIRM_ENDPOINT}/{notification_id}')
+    requests.patch(f'{settings.BACKEND_CONFIRM_ENDPOINT}/{notification_id}')
 
 
 def send_email(payload):
