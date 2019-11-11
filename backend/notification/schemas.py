@@ -1,4 +1,9 @@
-from marshmallow import Schema, fields, post_load, pre_load
+import pytz
+from marshmallow import Schema, fields, post_load, pre_dump, pre_load
+
+from app import settings
+
+tz = pytz.timezone(settings.TIMEZONE)
 
 
 class Notification(Schema):
@@ -9,6 +14,13 @@ class Notification(Schema):
     send_at = fields.DateTime()
     is_sent = fields.Boolean()
     is_deleted = fields.Boolean()
+
+    @pre_dump
+    def prepare_date(self, data, **kwargs):
+        # В Mongo хранится время по UTC
+        data['send_at'] = pytz.UTC.localize(data['send_at']).astimezone(tz)
+
+        return data
 
 
 class NotificationPayload(Notification):

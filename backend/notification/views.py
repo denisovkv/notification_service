@@ -10,7 +10,7 @@ from notification.models import Notification
 
 routes = web.RouteTableDef()
 
-# TODO: timezone
+# TODO: delete вместо is_deleted
 
 
 @routes.view('/{id}')

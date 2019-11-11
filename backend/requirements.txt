@@ -5,3 +5,4 @@ uvloop==0.13.0
 marshmallow==3.0.5
 bson==0.5.8
 motor==2.0.0
+pytz==2019.3
