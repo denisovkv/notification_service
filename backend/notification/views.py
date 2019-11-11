@@ -4,13 +4,11 @@ from aiohttp import ClientSession, web
 from marshmallow import ValidationError
 
 from app import settings
-from notification import schemas
+from notification import schemas, warnings
 from notification.models import Notification
 
 
 routes = web.RouteTableDef()
-
-# TODO: delete вместо is_deleted
 
 
 @routes.view('/{id}')
@@ -38,11 +36,11 @@ class NotificationView(web.View):
                 return web.HTTPOk()
 
         except (ValueError, ValidationError):
-            return web.HTTPBadRequest(text='Request body is incorrect or missing')
+            return web.HTTPBadRequest(text=warnings.INCORRECT_OR_MISSING_BODY)
 
     async def delete(self):
 
-        await Notification(self.request.app['db']).update_or_404(self.request.match_info['id'], {'$set': {'is_deleted': True}})
+        await Notification(self.request.app['db']).delete(self.request.match_info['id'])
 
         async with ClientSession() as session, \
                 session.delete(f'{settings.NOTIFIER_ENDPOINT}/{self.request.match_info["id"]}'):
@@ -64,7 +62,7 @@ class NotificationCreateAndSearchView(web.View):
                 return web.HTTPOk(content_type='application/json', body=json.dumps({'id': inserted_id}))
 
         except (ValueError, ValidationError):
-            return web.HTTPBadRequest(text='Request body is incorrect or missing')
+            return web.HTTPBadRequest(text=warnings.INCORRECT_OR_MISSING_BODY)
 
     async def get(self):
         try:
@@ -76,7 +74,7 @@ class NotificationCreateAndSearchView(web.View):
                               body=schemas.NotificationList().dumps({'result': result}))
 
         except (ValueError, ValidationError):
-            return web.HTTPBadRequest(text='Request body is incorrect or missing')
+            return web.HTTPBadRequest(text=warnings.INCORRECT_OR_MISSING_BODY)
 
 
 @routes.view('/confirm/{id}')
