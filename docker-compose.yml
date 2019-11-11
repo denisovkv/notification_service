@@ -2,60 +2,43 @@ version: '3'
 
 services:
 
-  db:
-    image: postgres
-    restart: always
-    env_file:
-      - .env
-      - .env.override
-    environment:
-      POSTGRES_USER: $DATABASE_USER
-      POSTGRES_DB: $DATABASE_NAME
+  mongo:
+    image: mongo:latest
     volumes:
-      - ./db/data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./db/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./data:/data/db
     networks:
       - notification
     ports:
-      - '${DATABASE_PORT}:${DATABASE_PORT}'
-    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+      - '$MONGO_PORT:$MONGO_PORT'
 
-  db_writer:
-    depends_on:
-      - db
+  backend:
     env_file:
       - .env
-      - .env.override
     build:
       context: .
-      dockerfile: docker/db_writer/Dockerfile
+      dockerfile: docker/backend/Dockerfile
     volumes:
-      - ./db_writer:/db_writer
+      - ./backend:/backend
     networks:
       - notification
     ports:
-      - '$DB_WRITER_PORT:$DB_WRITER_PORT'
-    command: 'wait-for-it.sh "${DATABASE_HOST}:${DATABASE_PORT}" --
-              bash -c "sleep 5 && gunicorn source:make_app -w $DB_WRITER_WORKERS --bind 0.0.0.0:$DB_WRITER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+      - '$BACKEND_PORT:$BACKEND_PORT'
+    command: 'wait-for-it.sh "mongo:${MONGO_PORT}" --
+              bash -c "gunicorn app:make_app -w $BACKEND_WORKERS --bind 0.0.0.0:$BACKEND_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
 
-  email_sender:
-    depends_on:
-      - db
+  notifier:
     env_file:
       - .env
-      - .env.override
     build:
       context: .
-      dockerfile: docker/email_sender/Dockerfile
+      dockerfile: docker/notifier/Dockerfile
     volumes:
-      - ./email_sender:/email_sender
+      - ./notifier:/notifier
     networks:
       - notification
     ports:
-      - '$EMAIL_SENDER_PORT:$EMAIL_SENDER_PORT'
-    command: 'wait-for-it.sh "${DATABASE_HOST}:${DATABASE_PORT}" --
-              bash -c "sleep 5 && gunicorn source:make_app -w 1 --bind 0.0.0.0:$EMAIL_SENDER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
+      - '$NOTIFIER_PORT:$NOTIFIER_PORT'
+    command: 'bash -c "gunicorn app:make_app -w 1 --bind 0.0.0.0:$NOTIFIER_PORT --worker-class aiohttp.GunicornUVLoopWebWorker --reload --log-level debug"'
 
 networks:
   notification:
