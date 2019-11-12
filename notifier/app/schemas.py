@@ -8,4 +8,3 @@ class Notification(Schema):
     send_to = fields.Email(required=True)
     send_at = fields.DateTime(required=True)
     is_sent = fields.Boolean()
-    is_deleted = fields.Boolean()
