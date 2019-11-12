@@ -13,7 +13,6 @@ class Notification(Schema):
     send_to = fields.Email()
     send_at = fields.DateTime()
     is_sent = fields.Boolean()
-    is_deleted = fields.Boolean()
 
     @pre_dump
     def prepare_date(self, data, **kwargs):
@@ -25,7 +24,7 @@ class Notification(Schema):
 
 class NotificationPayload(Notification):
     class Meta:
-        exclude = ('id', 'is_sent', 'is_deleted')
+        exclude = ('id', 'is_sent')
 
     title = fields.String(required=True)
     body = fields.String(required=True)
@@ -33,27 +32,25 @@ class NotificationPayload(Notification):
     send_at = fields.DateTime(required=True)
 
     @post_load
-    def set_default_to_excluded(self, data, **kwargs):
+    def set_default_to_is_sent(self, data, **kwargs):
         data['is_sent'] = False
-        data['is_deleted'] = False
         return data
 
 
 class NotificationUpdatePayload(Notification):
     class Meta:
-        exclude = ('id', 'is_sent', 'is_deleted')
+        exclude = ('id', 'is_sent')
 
 
 class NotificationSearch(Schema):
 
     class Meta:
-        fields = ('id', 'title', 'send_to', 'is_sent', 'is_deleted')
+        fields = ('id', 'title', 'send_to', 'is_sent')
 
     id = fields.List(fields.String())
     title = fields.List(fields.String())
     send_to = fields.List(fields.Email())
     is_sent = fields.List(fields.Boolean())
-    is_deleted = fields.List(fields.Boolean())
 
     @pre_load
     def prepare_data(self, data, **kwargs):
