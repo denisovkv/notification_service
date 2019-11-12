@@ -1,10 +1,8 @@
 import logging
 import smtplib
-
-import requests
-
 from email.message import EmailMessage
 
+import requests
 from app import settings
 
 logger = logging.getLogger(__name__)

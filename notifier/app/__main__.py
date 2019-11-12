@@ -1,7 +1,6 @@
 import weakref
 
 from aiohttp import web
-
 from app.views import routes
 
 

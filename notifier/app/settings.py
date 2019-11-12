@@ -1,6 +1,5 @@
 from envparse import Env
 
-
 env = Env()
 
 NOTIFIER_LOGIN = env.str('NOTIFIER_LOGIN', default='login')
