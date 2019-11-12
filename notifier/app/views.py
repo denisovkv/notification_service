@@ -3,7 +3,6 @@ from asyncio import get_event_loop
 from datetime import datetime
 
 from aiohttp import web
-
 from app import schemas
 from app.tasks import send_email
 

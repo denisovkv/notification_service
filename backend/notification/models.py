@@ -1,9 +1,8 @@
 from aiohttp import web
-from bson.objectid import ObjectId
-from bson.errors import InvalidId
-from motor.motor_asyncio import AsyncIOMotorDatabase
-
 from app import settings
+from bson.errors import InvalidId
+from bson.objectid import ObjectId
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from notification import warnings
 
 

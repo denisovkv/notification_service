@@ -1,7 +1,6 @@
 from aiohttp import web
-from motor.motor_asyncio import AsyncIOMotorClient
-
 from app import settings
+from motor.motor_asyncio import AsyncIOMotorClient
 from notification.views import routes as notification_routes
 
 

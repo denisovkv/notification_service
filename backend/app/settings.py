@@ -1,6 +1,5 @@
 from envparse import Env
 
-
 env = Env()
 
 MONGO_HOST = env.str('MONGO_HOST', default='mongo')

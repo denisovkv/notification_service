@@ -1,7 +1,6 @@
 import pytz
-from marshmallow import Schema, fields, post_load, pre_dump, pre_load
-
 from app import settings
+from marshmallow import Schema, fields, post_load, pre_dump, pre_load
 
 tz = pytz.timezone(settings.TIMEZONE)
 

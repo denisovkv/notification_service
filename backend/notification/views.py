@@ -1,12 +1,10 @@
 import json
 
 from aiohttp import ClientSession, web
-from marshmallow import ValidationError
-
 from app import settings
+from marshmallow import ValidationError
 from notification import schemas, warnings
 from notification.models import Notification
-
 
 routes = web.RouteTableDef()
 
