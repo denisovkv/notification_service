@@ -55,9 +55,9 @@ class NotificationSearch(Schema):
     def prepare_data(self, data, **kwargs):
         prepared_data = {}
 
-        for key in self.Meta.fields:
+        for key in self.fields:
             try:
-                prepared_data.update({key: data.getall(key)})
+                prepared_data.update({key: data[key].split(',')})
             except KeyError:
                 pass
 
