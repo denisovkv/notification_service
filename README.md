@@ -43,7 +43,7 @@
     "title": "hello",
     "body": "world",
     "send_to": "foo@bar.ru",
-    "send_at": "1970-01-01T00:00:00",
+    "send_at": "1970-01-01T00:00:00+04:00",
     "is_sent": false,
 }
 ```
@@ -66,7 +66,7 @@
         "title": "hello",
         "body": "world",
         "send_to": "foo@bar.ru",
-        "send_at": "1970-01-01T00:00:00",
+        "send_at": "1970-01-01T00:00:00+04:00",
         "is_sent": false,
         }
     ]
