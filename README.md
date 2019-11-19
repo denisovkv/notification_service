@@ -53,9 +53,9 @@
 #### GET
 `/api/notification?title=hello&is_sent=false`
 
-Указание нескольких фильтров расценивается как AND. Для передачи списка вариантов необходимо передать требуемый параметр несколько раз:
+Указание нескольких фильтров расценивается как AND. Для передачи списка вариантов необходимо перечислить их через запятую:
 
-`/api/notification?title=hello&title=goodbye&is_sent=false`
+`/api/notification?title=hello,goodbye&is_sent=false`
 
 Ответ - найденные уведомления:
 ```
